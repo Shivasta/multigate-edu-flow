@@ -1,0 +1,764 @@
+<!-- templates/advisor.html -->
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    body {
+        background: #f5f7fa;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #333;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    .navbar {
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+        border-bottom: 1px solid #ececec;
+        background: #fff !important;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .advisor-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 56px);
+    }
+
+    .top-bar {
+        background: #fff;
+        padding: 15px 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .app-title {
+        color: #464e5f;
+        font-weight: 600;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+    }
+
+    .app-title i {
+        margin-right: 10px;
+        color: #5867dd;
+    }
+
+    .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .main-content {
+        display: flex;
+        flex-grow: 1;
+    }
+
+    .sidebar {
+        width: 280px;
+        background: white;
+        border-right: 1px solid #eef0f8;
+        height: calc(100vh - 56px);
+        position: sticky;
+        top: 56px;
+        padding: 0;
+        overflow-y: auto;
+    }
+
+    .content-area {
+        flex: 1;
+        padding: 24px;
+        background: #f5f7fa;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #181c32;
+    }
+
+    .page-subtitle {
+        color: #7e8299;
+        margin-top: 5px;
+        font-size: 1rem;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-left: 4px solid transparent;
+        cursor: default;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card.students {
+        border-left-color: #3699ff;
+    }
+
+    .stat-card.mentors {
+        border-left-color: #1bc5bd;
+    }
+
+    .stat-card.pending {
+        border-left-color: #f64e60;
+    }
+
+    .stat-number {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #181c32;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #7e8299;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #eef0f8;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .panel-title {
+        font-weight: 600;
+        font-size: 1.15rem;
+        color: #181c32;
+        margin: 0;
+    }
+
+    .panel-subtitle {
+        color: #7e8299;
+        font-size: 0.9rem;
+        margin: 4px 0 0 0;
+    }
+
+    .panel-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .panel-body {
+        padding: 0;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 16px 24px;
+        text-align: left;
+    }
+
+    .data-table th {
+        color: #3f4254;
+        font-weight: 600;
+        border-bottom: 1px solid #eef0f8;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f9fafb;
+        white-space: nowrap;
+    }
+
+    .data-table tr:not(:last-child) td {
+        border-bottom: 1px solid #eef0f8;
+    }
+
+    .data-table tr:hover {
+        background-color: #f9f9fd;
+    }
+
+    .data-table td {
+        color: #7e8299;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #5867dd;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #4354c7;
+        box-shadow: 0 4px 12px rgba(88, 103, 221, 0.3);
+    }
+
+    .btn-light {
+        background: #f3f6f9;
+        color: #7e8299;
+    }
+
+    .btn-light:hover {
+        background: #e9ecf5;
+        color: #5e6278;
+    }
+
+    .btn-success {
+        background: #0bb783;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #09a173;
+        box-shadow: 0 4px 12px rgba(11, 183, 131, 0.3);
+    }
+
+    .btn-danger {
+        background: #f64e60;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #ee2d41;
+        box-shadow: 0 4px 12px rgba(246, 78, 96, 0.3);
+    }
+
+    .student-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #eef0f8;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .student-item:hover {
+        background: #f9f9fd;
+    }
+
+    .student-item.active {
+        background: #f1f3ff;
+        border-left: 4px solid #5867dd;
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: #181c32;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .student-reg {
+        font-size: 0.85rem;
+        color: #7e8299;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .student-mentor {
+        font-size: 0.8rem;
+        color: #0bb783;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .filter-badge {
+        background: #f1f3ff;
+        color: #5867dd;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-badge i {
+        cursor: pointer;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .badge-primary {
+        background: #e1f0ff;
+        color: #3699ff;
+    }
+
+    .badge-success {
+        background: #c9f7f5;
+        color: #1bc5bd;
+    }
+
+    .badge-warning {
+        background: #fff4de;
+        color: #ffa800;
+    }
+
+    .badge-danger {
+        background: #ffe2e5;
+        color: #f64e60;
+    }
+
+    .empty-state {
+        padding: 40px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        color: #b5b5c3;
+        margin-bottom: 20px;
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #3f4254;
+        margin-bottom: 10px;
+    }
+
+    .empty-message {
+        color: #7e8299;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="advisor-wrapper">
+    <!-- Top bar with app title and actions -->
+    <div class="top-bar">
+        <div class="app-title">
+            <i class="fas fa-user-tie"></i> MEF Portal - Advisor
+        </div>
+        <div class="user-actions">
+            <div class="btn btn-light">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-light">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main content area with sidebar and content -->
+    <div class="main-content">
+        <!-- Left sidebar for students list -->
+        <div class="sidebar">
+            <div style="padding: 24px 20px 16px;">
+                <h3 class="panel-title" style="margin:0 0 16px;">Students in Department</h3>
+                <button id="show-all-btn" class="btn btn-primary" style="width:100%;margin-bottom:16px;">
+                    <i class="fas fa-users"></i> Show All Students
+                </button>
+            </div>
+            <ul style="list-style:none;padding:0;margin:0;max-height:calc(100vh - 200px);overflow-y:auto;">
+                {% for student in students_list %}
+                <li class="student-item" data-reg="{{ student[1]|string|trim }}">
+                    <span class="student-name">{{ student[0] }}</span>
+                    <span class="student-reg">{{ student[1] }} | {{ student[2] }} Year</span>
+                    <span class="student-mentor">
+                        <i class="fas fa-user-alt"></i>
+                        {% if mentors_in_dept and mentors_in_dept|length > 0 %}
+                        {{ mentors_in_dept[0] }}{% if mentors_in_dept|length > 1 %} +{{ mentors_in_dept|length - 1 }}{%
+                        endif %}
+                        {% else %}
+                        Mentor not assigned
+                        {% endif %}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Main content area -->
+        <div class="content-area">
+            <!-- Page header with title and department info -->
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Advisor Dashboard</h1>
+                    <p class="page-subtitle">Department: <strong>{{ session.department|title }}</strong></p>
+                </div>
+            </div>
+
+            <!-- Stats cards -->
+            <div class="stats-row">
+                <div class="stat-card students">
+                    <div class="stat-number">{{ students_list|length }}</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-card mentors">
+                    <div class="stat-number">{{ mentors_in_dept|length }}</div>
+                    <div class="stat-label">Mentors</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">{{ requests|length }}</div>
+                    <div class="stat-label">Pending Requests</div>
+                </div>
+            </div>
+
+            <!-- Request Management Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h3 class="panel-title">Request Management</h3>
+                        <p class="panel-subtitle">Review and process student requests</p>
+                    </div>
+                    <div class="panel-actions">
+                        <div id="filter-status-badge" class="filter-badge" style="display:none">
+                            <i class="fas fa-filter"></i> <span id="filter-student-name"></span>
+                            <i class="fas fa-times" id="clear-filter"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">ID</th>
+                                <th>Student Name</th>
+                                <th>Type</th>
+                                <th>Reason</th>
+                                <th style="width:100px;">From</th>
+                                <th style="width:100px;">To</th>
+                                <th>Status</th>
+                                <th style="width:220px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if requests %}
+                            {% for req in requests %}
+                            <tr data-reg="{{ req[1]|string|trim }}">
+                                <td><strong>#{{ req[0] }}</strong></td>
+                                <td>{{ req[8] }}</td>
+                                <td><span class="badge badge-primary">{{ req[2] }}</span></td>
+                                <td>
+                                    {% if req[3]|length > 50 %}
+                                    {{ req[3][:50] }}...
+                                    {% else %}
+                                    {{ req[3] }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ req[4] }}</td>
+                                <td>{{ req[5] }}</td>
+                                <td><span class="badge badge-success">{{ req[6] }}</span></td>
+                                <td>
+                                    <form method="post" action="{{ url_for('advisor_action') }}"
+                                        style="display:flex;gap:10px;flex-direction:column;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="request_id" value="{{ req[0] }}">
+                                        <textarea name="advisor_note" placeholder="Note for HOD (required)" required
+                                            style="width:100%;padding:8px;border:1px solid #eef0f8;border-radius:6px;resize:vertical;font-size:0.9rem;min-height:40px;"></textarea>
+                                        <div style="display:flex;gap:8px;">
+                                            <button name="action" value="Approve" class="btn btn-success" type="submit"
+                                                style="flex:1;">
+                                                <i class="fas fa-check-circle"></i> Approve
+                                            </button>
+                                            <button name="action" value="Reject" class="btn btn-danger" type="submit"
+                                                style="flex:1;">
+                                                <i class="fas fa-times-circle"></i> Reject
+                                            </button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </div>
+                                        <h3 class="empty-title">All Caught Up!</h3>
+                                        <p class="empty-message">No pending requests that require your attention at this
+                                            time.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .student-item {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .student-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .student-item.active {
+        border-color: #1a237e;
+        background: #eff3ff;
+        box-shadow: 0 4px 12px rgba(26, 35, 126, 0.1);
+    }
+
+    @media (max-width: 1024px) {
+        .advisor-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .stats-container {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .advisor-layout {
+            flex-direction: column;
+        }
+
+        .sidebar-students {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Store active student for highlighting
+        let activeStudent = null;
+
+        // Function to reset all students (remove active state)
+        function resetStudents() {
+            document.querySelectorAll('.student-item').forEach(student => {
+                student.classList.remove('active');
+            });
+        }
+
+        // Function to show filter status message
+        function updateFilterStatus(isFiltered, studentName = '') {
+            const tableContainer = document.querySelector('.table-container');
+            let filterStatus = document.getElementById('filter-status');
+
+            if (!filterStatus) {
+                filterStatus = document.createElement('div');
+                filterStatus.id = 'filter-status';
+                filterStatus.style.padding = '10px 20px';
+                filterStatus.style.borderBottom = '1px solid #eaeaea';
+                filterStatus.style.backgroundColor = '#f9faff';
+                filterStatus.style.fontSize = '0.9rem';
+                filterStatus.style.display = 'none';
+
+                // Insert after the header section
+                const headerSection = tableContainer.querySelector('div');
+                tableContainer.insertBefore(filterStatus, headerSection.nextSibling);
+            }
+
+            if (isFiltered) {
+                filterStatus.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span><i class="fas fa-filter"></i> Showing requests for: <strong>${studentName}</strong></span>
+                    <button id="clear-filter" style="background:none;border:none;color:#1a237e;cursor:pointer;font-size:0.85rem;padding:2px 5px;border-radius:4px;">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            `;
+                filterStatus.style.display = 'block';
+
+                // Add event listener to the clear button
+                document.getElementById('clear-filter').addEventListener('click', function () {
+                    showAllRequests();
+                });
+            } else {
+                filterStatus.style.display = 'none';
+            }
+        }
+
+        // Function to filter requests
+        function filterRequestsByStudent(reg, studentName) {
+            var foundRows = false;
+            document.querySelectorAll('tbody tr').forEach(function (row) {
+                if (row.getAttribute('data-reg') === reg) {
+                    row.style.display = '';
+                    foundRows = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show a message if no requests found
+            var noRequestsMsg = document.getElementById('no-requests-msg');
+            var tbody = document.querySelector('tbody');
+
+            if (!foundRows) {
+                if (!noRequestsMsg) {
+                    noRequestsMsg = document.createElement('tr');
+                    noRequestsMsg.id = 'no-requests-msg';
+                    noRequestsMsg.innerHTML = `
+                    <td colspan="8">
+                        <div style="padding:30px 20px;text-align:center;">
+                            <div style="color:#999;margin-bottom:10px;">
+                                <i class="fas fa-search" style="font-size:2rem;"></i>
+                            </div>
+                            <h3 style="margin:0 0 5px;color:#333;font-weight:500;">No Requests Found</h3>
+                            <p style="color:#666;margin:0;">No requests from this student require your attention.</p>
+                        </div>
+                    </td>
+                `;
+                    tbody.appendChild(noRequestsMsg);
+                } else {
+                    noRequestsMsg.style.display = '';
+                }
+            } else if (noRequestsMsg) {
+                noRequestsMsg.style.display = 'none';
+            }
+
+            updateFilterStatus(true, studentName);
+        }
+
+        // Function to show all requests
+        function showAllRequests() {
+            document.querySelectorAll('tbody tr').forEach(function (row) {
+                row.style.display = '';
+            });
+
+            var noRequestsMsg = document.getElementById('no-requests-msg');
+            if (noRequestsMsg) {
+                noRequestsMsg.style.display = 'none';
+            }
+
+            resetStudents();
+            activeStudent = null;
+            updateFilterStatus(false);
+        }
+
+        // Set up click handlers for student items
+        document.querySelectorAll('.student-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                const reg = this.getAttribute('data-reg').toString().trim();
+                const name = this.querySelector('.student-name').textContent;
+
+                resetStudents();
+                this.classList.add('active');
+                activeStudent = reg;
+
+                filterRequestsByStudent(reg, name);
+            });
+        });
+
+        // Show All button
+        var showAllBtn = document.getElementById('show-all-btn');
+        if (showAllBtn) {
+            showAllBtn.addEventListener('click', function () {
+                showAllRequests();
+            });
+        }
+    });
+</script>
+
+<!-- Floating Action Button for Mobile -->
+<div id="mobile-fab"
+    style="position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;background:#1a237e;color:white;display:none;justify-content:center;align-items:center;box-shadow:0 4px 12px rgba(26,35,126,0.3);z-index:100;cursor:pointer;">
+    <i class="fas fa-users" style="font-size:1.2rem;"></i>
+</div>
+
+<script>
+    // Mobile FAB for showing student sidebar
+    document.addEventListener('DOMContentLoaded', function () {
+        const fab = document.getElementById('mobile-fab');
+        const sidebar = document.querySelector('.sidebar-students');
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+        function handleScreenChange(e) {
+            if (e.matches) {
+                fab.style.display = 'flex';
+                sidebar.style.display = 'none';
+                sidebar.dataset.visible = 'false';
+            } else {
+                fab.style.display = 'none';
+                sidebar.style.display = 'block';
+            }
+        }
+
+        // Initial check
+        handleScreenChange(mediaQuery);
+
+        // Add listener for changes
+        mediaQuery.addEventListener('change', handleScreenChange);
+
+        // FAB click handler
+        fab.addEventListener('click', function () {
+            if (sidebar.dataset.visible === 'true') {
+                sidebar.style.display = 'none';
+                sidebar.dataset.visible = 'false';
+                fab.innerHTML = '<i class="fas fa-users" style="font-size:1.2rem;"></i>';
+            } else {
+                sidebar.style.display = 'block';
+                sidebar.dataset.visible = 'true';
+                fab.innerHTML = '<i class="fas fa-times" style="font-size:1.2rem;"></i>';
+            }
+        });
+    });
+</script>
+</div>
+{% endblock %}
